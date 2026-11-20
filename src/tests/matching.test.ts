@@ -220,5 +220,60 @@ describe("Coy Discover Core Matching & Privacy Rules", () => {
       });
       expect(swipe?.action).toBe("like");
     });
+
+    it("safely handles simultaneous identical swipe requests concurrently", async () => {
+      // Fire 3 simultaneous like requests for Maya
+      const results = await Promise.all([
+        recordSwipe({ targetUserId: "user-maya-24", action: "like" }),
+        recordSwipe({ targetUserId: "user-maya-24", action: "like" }),
+        recordSwipe({ targetUserId: "user-maya-24", action: "like" }),
+      ]);
+
+      // All should succeed idempotently
+      for (const res of results) {
+        expect(res.success).toBe(true);
+        expect(res.match).toBe(true);
+      }
+
+      // Exactly 1 swipe record and 1 match record in DB
+      const swipeRecords = await prisma.swipe.findMany({
+        where: { swiperId: DEMO_USER_ID, targetId: "user-maya-24" },
+      });
+      expect(swipeRecords.length).toBe(1);
+
+      const matchRecords = await prisma.match.findMany({
+        where: {
+          OR: [
+            { userAId: DEMO_USER_ID, userBId: "user-maya-24" },
+            { userAId: "user-maya-24", userBId: DEMO_USER_ID },
+          ],
+        },
+      });
+      expect(matchRecords.length).toBe(1);
+    });
+
+    it("ensures unique constraints protect swipe decisions during concurrent conflicting requests", async () => {
+      // Fire simultaneous conflicting requests (like vs pass) on Julian
+      const outcomes = await Promise.allSettled([
+        recordSwipe({ targetUserId: "user-julian-26", action: "like" }),
+        recordSwipe({ targetUserId: "user-julian-26", action: "pass" }),
+      ]);
+
+      // Exactly one should succeed, and one should be rejected with a conflict error
+      const fulfilled = outcomes.filter((o) => o.status === "fulfilled");
+      const rejected = outcomes.filter((o) => o.status === "rejected");
+
+      expect(fulfilled.length).toBe(1);
+      expect(rejected.length).toBe(1);
+
+      const rejectionReason = (rejected[0] as PromiseRejectedResult).reason;
+      expect(rejectionReason.message).toMatch(/Conflict/);
+
+      // Unique constraint ensured only 1 swipe record exists
+      const swipeRecords = await prisma.swipe.findMany({
+        where: { swiperId: DEMO_USER_ID, targetId: "user-julian-26" },
+      });
+      expect(swipeRecords.length).toBe(1);
+    });
   });
 });

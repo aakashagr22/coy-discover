@@ -211,7 +211,7 @@ When a user swipes on a profile via `POST /swipe`:
 
 ### 2. Clone Repository & Install Dependencies
 ```bash
-git clone <repository-url>
+git clone https://github.com/aakashagr22/coy-discover.git
 cd coy-discover
 
 # Install dependencies
@@ -439,4 +439,4 @@ If deploying to Railway, Fly.io, or a VPS with Docker:
 
 ## License
 
-This project is licensed under the MIT License.
+This project was built for the Coy SDE Intern evaluation assignment. All rights reserved.

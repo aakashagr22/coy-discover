@@ -1,7 +1,13 @@
 import { prisma } from "./prisma";
+import { Prisma } from "@prisma/client";
 import { DEMO_USER_ID } from "./constants";
 import { ProfileDTO, MatchItemDTO, SwipeResponse } from "./types";
 import { SwipeInput } from "./validations";
+import {
+  SwipeConflictError,
+  ProfileNotFoundError,
+  SelfSwipeError,
+} from "./errors";
 
 export { DEMO_USER_ID };
 
@@ -76,7 +82,7 @@ export async function recordSwipe(
   const { targetUserId, action } = input;
 
   if (targetUserId === swiperId) {
-    throw new Error("Cannot swipe on yourself");
+    throw new SelfSwipeError("Cannot swipe on yourself");
   }
 
   // Verify target user exists
@@ -86,30 +92,66 @@ export async function recordSwipe(
   });
 
   if (!targetUser || !targetUser.profile) {
-    throw new Error("Target user profile not found");
+    throw new ProfileNotFoundError("Target user profile not found");
   }
 
   const targetProfile = targetUser.profile;
 
-  // Execute in transaction
-  return await prisma.$transaction(async (tx) => {
-    // 1. Check for existing swipe by this user on target to enforce immutability
-    const existingSwipe = await tx.swipe.findUnique({
-      where: {
-        swiperId_targetId: {
-          swiperId,
-          targetId: targetUserId,
+  try {
+    // Execute in transaction
+    return await prisma.$transaction(async (tx) => {
+      // 1. Check for existing swipe by this user on target to enforce immutability
+      const existingSwipe = await tx.swipe.findUnique({
+        where: {
+          swiperId_targetId: {
+            swiperId,
+            targetId: targetUserId,
+          },
         },
-      },
-    });
+      });
 
-    if (existingSwipe) {
-      // Conflicting decision: reject mutation
-      if (existingSwipe.action !== action) {
-        throw new Error("Conflict: Profile has already been swiped on with a different decision");
+      if (existingSwipe) {
+        // Conflicting decision: reject mutation
+        if (existingSwipe.action !== action) {
+          throw new SwipeConflictError("Conflict: Profile has already been swiped on with a different decision");
+        }
+
+        // Idempotent retry: return previously computed outcome
+        if (action === "pass") {
+          return {
+            success: true,
+            match: false,
+          };
+        }
+
+        // If existing action was 'like', check if mutual match exists
+        const [userAId, userBId] = [swiperId, targetUserId].sort();
+        const existingMatch = await tx.match.findUnique({
+          where: {
+            userAId_userBId: {
+              userAId,
+              userBId,
+            },
+          },
+        });
+
+        return {
+          success: true,
+          match: Boolean(existingMatch),
+          matchedProfile: existingMatch ? formatProfile(targetProfile) : undefined,
+        };
       }
 
-      // Idempotent retry: return previously computed outcome
+      // 2. Create new immutable swipe record
+      await tx.swipe.create({
+        data: {
+          swiperId,
+          targetId: targetUserId,
+          action,
+        },
+      });
+
+      // If passed, definitely no match
       if (action === "pass") {
         return {
           success: true,
@@ -117,83 +159,89 @@ export async function recordSwipe(
         };
       }
 
-      // If existing action was 'like', check if mutual match exists
-      const [userAId, userBId] = [swiperId, targetUserId].sort();
-      const existingMatch = await tx.match.findUnique({
+      // 3. If liked, check if target has also liked swiper
+      const reciprocalSwipe = await tx.swipe.findUnique({
         where: {
-          userAId_userBId: {
-            userAId,
-            userBId,
+          swiperId_targetId: {
+            swiperId: targetUserId,
+            targetId: swiperId,
           },
         },
       });
 
-      return {
-        success: true,
-        match: Boolean(existingMatch),
-        matchedProfile: existingMatch ? formatProfile(targetProfile) : undefined,
-      };
-    }
+      const isMutualLike = reciprocalSwipe?.action === "like";
 
-    // 2. Create new immutable swipe record
-    await tx.swipe.create({
-      data: {
-        swiperId,
-        targetId: targetUserId,
-        action,
-      },
-    });
+      if (isMutualLike) {
+        // Sort IDs canonically to prevent duplicate inverse records
+        const [userAId, userBId] = [swiperId, targetUserId].sort();
 
-    // If passed, definitely no match
-    if (action === "pass") {
+        await tx.match.upsert({
+          where: {
+            userAId_userBId: {
+              userAId,
+              userBId,
+            },
+          },
+          update: {},
+          create: {
+            userAId,
+            userBId,
+          },
+        });
+
+        return {
+          success: true,
+          match: true,
+          matchedProfile: formatProfile(targetProfile),
+        };
+      }
+
       return {
         success: true,
         match: false,
       };
-    }
-
-    // 3. If liked, check if target has also liked swiper
-    const reciprocalSwipe = await tx.swipe.findUnique({
-      where: {
-        swiperId_targetId: {
-          swiperId: targetUserId,
-          targetId: swiperId,
-        },
-      },
     });
-
-    const isMutualLike = reciprocalSwipe?.action === "like";
-
-    if (isMutualLike) {
-      // Sort IDs canonically to prevent duplicate inverse records
-      const [userAId, userBId] = [swiperId, targetUserId].sort();
-
-      await tx.match.upsert({
+  } catch (error: unknown) {
+    // Gracefully handle race condition if concurrent request committed between check and insert
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const committedSwipe = await prisma.swipe.findUnique({
         where: {
-          userAId_userBId: {
-            userAId,
-            userBId,
+          swiperId_targetId: {
+            swiperId,
+            targetId: targetUserId,
           },
-        },
-        update: {},
-        create: {
-          userAId,
-          userBId,
         },
       });
 
-      return {
-        success: true,
-        match: true,
-        matchedProfile: formatProfile(targetProfile),
-      };
+      if (committedSwipe) {
+        if (committedSwipe.action !== action) {
+          throw new SwipeConflictError("Conflict: Profile has already been swiped on with a different decision");
+        }
+
+        if (action === "pass") {
+          return { success: true, match: false };
+        }
+
+        const [userAId, userBId] = [swiperId, targetUserId].sort();
+        const existingMatch = await prisma.match.findUnique({
+          where: {
+            userAId_userBId: {
+              userAId,
+              userBId,
+            },
+          },
+        });
+
+        return {
+          success: true,
+          match: Boolean(existingMatch),
+          matchedProfile: existingMatch ? formatProfile(targetProfile) : undefined,
+        };
+      }
     }
 
-    return {
-      success: true,
-      match: false,
-    };
-  });
+    throw error;
+  }
 }
 
 /**

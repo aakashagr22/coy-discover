@@ -122,4 +122,43 @@ describe("Coy Discover Route Handlers Integration", () => {
     const data2 = await res2.json();
     expect(data2.error).toMatch(/Conflict/);
   });
+
+  it("POST /swipe handles concurrent identical requests and concurrent conflicting requests", async () => {
+    // 1. Concurrent identical requests
+    const [resA, resB] = await Promise.all([
+      postSwipeHandler(
+        new NextRequest("http://localhost:3000/swipe", {
+          method: "POST",
+          body: JSON.stringify({ targetUserId: "user-maya-24", action: "like" }),
+        })
+      ),
+      postSwipeHandler(
+        new NextRequest("http://localhost:3000/swipe", {
+          method: "POST",
+          body: JSON.stringify({ targetUserId: "user-maya-24", action: "like" }),
+        })
+      ),
+    ]);
+    expect(resA.status).toBe(200);
+    expect(resB.status).toBe(200);
+
+    // 2. Concurrent conflicting requests on Julian
+    const responses = await Promise.all([
+      postSwipeHandler(
+        new NextRequest("http://localhost:3000/swipe", {
+          method: "POST",
+          body: JSON.stringify({ targetUserId: "user-julian-26", action: "like" }),
+        })
+      ),
+      postSwipeHandler(
+        new NextRequest("http://localhost:3000/swipe", {
+          method: "POST",
+          body: JSON.stringify({ targetUserId: "user-julian-26", action: "pass" }),
+        })
+      ),
+    ]);
+
+    const statuses = responses.map((r) => r.status).sort();
+    expect(statuses).toEqual([200, 409]);
+  });
 });

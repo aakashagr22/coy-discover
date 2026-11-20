@@ -71,6 +71,11 @@ const INTEREST_EMOJIS: Record<string, string> = {
 export function ProfileCard({ profile, dragX, isTopCard = true }: ProfileCardProps) {
   const [imageError, setImageError] = React.useState(false);
 
+  // Reset image error state whenever the active profile or its photoUrl changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [profile.id, profile.userId, profile.photoUrl]);
+
   return (
     <div className="relative w-full rounded-[28px] overflow-hidden bg-white border-2 border-ink shadow-tactile-lg select-none">
       {/* Top Image Area */}

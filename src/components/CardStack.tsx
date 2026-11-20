@@ -84,6 +84,7 @@ export function CardStack({ profiles, onSwipe, isProcessing = false }: CardStack
 
         {/* Active Top Swipable Card with Drag Gestures */}
         <motion.div
+          key={currentProfile.userId || currentProfile.id}
           style={{ x, rotate }}
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
@@ -92,6 +93,7 @@ export function CardStack({ profiles, onSwipe, isProcessing = false }: CardStack
           className="relative w-full cursor-grab active:cursor-grabbing touch-none z-10"
         >
           <ProfileCard
+            key={currentProfile.userId || currentProfile.id}
             profile={currentProfile}
             dragX={x}
             isTopCard={true}

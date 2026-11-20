@@ -18,7 +18,7 @@ export function EmptyState({
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    setRefreshLabel("Checking Nearby...");
+    setRefreshLabel("Checking feed...");
 
     try {
       await onRefresh();
