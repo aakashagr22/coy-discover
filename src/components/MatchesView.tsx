@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { MatchItemDTO } from "@/lib/types";
 
 interface MatchesViewProps {
@@ -31,9 +32,11 @@ function MatchCard({ match }: { match: MatchItemDTO }) {
               </span>
             </div>
           ) : (
-            <img
+            <Image
               src={match.profile.photoUrl}
-              alt={match.profile.name}
+              alt={`${match.profile.name}'s match thumbnail`}
+              width={80}
+              height={96}
               onError={() => setImageError(true)}
               className="w-full h-full object-cover"
             />

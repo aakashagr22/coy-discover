@@ -88,7 +88,7 @@ export default function App() {
     init();
   }, [fetchFeed, fetchMatches]);
 
-  // Handle Swipe Action with optimistic update and rollback on failure
+  // Handle Swipe Action with optimistic update and safe server reconciliation on failure
   const handleSwipe = async (action: "like" | "pass", swipedProfile: ProfileDTO) => {
     setIsSwiping(true);
     setErrorMessage(null);
@@ -116,19 +116,42 @@ export default function App() {
           setActiveMatch(data.matchedProfile);
           await fetchMatches();
         }
-      } else {
-        console.error("Swipe submission returned non-200:", res.status);
-        // Rollback optimistic removal so profile is not permanently lost
-        setProfiles((prev) => [swipedProfile, ...prev]);
-        setErrorMessage("Swipe failed to save. Restoring profile...");
+        return;
+      }
+
+      // Handle non-200 responses with safe server reconciliation (never blindly restore swiped profiles)
+      console.warn(`POST /swipe failed with status ${res.status}`);
+
+      if (res.status === 409) {
+        // Profile has already been recorded; reconcile directly with server
+        setErrorMessage("Profile already swiped. Reconciling feed...");
+        await fetchFeed();
         setTimeout(() => setErrorMessage(null), 3000);
+      } else if (res.status === 404) {
+        // Target profile not found; reconcile feed
+        setErrorMessage("Profile not found. Reconciling feed...");
+        await fetchFeed();
+        setTimeout(() => setErrorMessage(null), 3000);
+      } else {
+        // 500 or other unexpected status: operation may have committed before failure
+        setErrorMessage("Server error during swipe. Reconciling feed...");
+        const reconciled = await fetchFeed();
+        if (!reconciled) {
+          // If reconciliation fails, preserve current feed and display unconfirmed warning
+          setErrorMessage("Unable to confirm swipe status. Please check your connection.");
+        }
+        setTimeout(() => setErrorMessage(null), 4000);
       }
     } catch (err) {
-      console.error("Error submitting swipe:", err);
-      // Rollback optimistic removal on network failure
-      setProfiles((prev) => [swipedProfile, ...prev]);
-      setErrorMessage("Network issue. Restoring profile...");
-      setTimeout(() => setErrorMessage(null), 3000);
+      console.error("Network error during swipe:", err);
+      // Operation may have committed before network dropped; reconcile directly
+      setErrorMessage("Network issue during swipe. Reconciling feed...");
+      const reconciled = await fetchFeed();
+      if (!reconciled) {
+        // Preserve current feed without restoring already-swiped cards
+        setErrorMessage("Network disconnected. Swipe outcome could not be verified.");
+      }
+      setTimeout(() => setErrorMessage(null), 4000);
     } finally {
       setIsSwiping(false);
     }
@@ -163,6 +186,25 @@ export default function App() {
               matchesCount={matches.length}
               onViewChange={(view) => setActiveDiscoverView(view)}
             />
+
+            {/* Non-blocking error banner when cached profiles exist and a feed refresh fails */}
+            {feedError && profiles.length > 0 && activeDiscoverView === "feed" && (
+              <div className="mb-3 px-3.5 py-2 rounded-2xl bg-[#FFEAEB] border border-ink text-ink text-xs font-bold flex items-center justify-between shadow-tactile-sm">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="material-symbols-outlined text-[16px] text-rose-600 shrink-0">
+                    sync_problem
+                  </span>
+                  <span className="truncate">{feedError}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fetchFeed()}
+                  className="ml-2 px-2.5 py-1 rounded-full bg-coy-pink text-white text-[11px] font-bold border border-ink shadow-tactile-active shrink-0 active:translate-x-[1px] active:translate-y-[1px]"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
             {isLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center py-20">

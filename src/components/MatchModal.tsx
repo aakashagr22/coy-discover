@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { ProfileDTO } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -81,9 +82,11 @@ export function MatchModal({
                     person
                   </span>
                 ) : (
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
-                    alt="You"
+                    alt="Your profile avatar (Alex)"
+                    width={96}
+                    height={96}
                     onError={() => setUserImgError(true)}
                     className="w-full h-full object-cover"
                   />
@@ -112,9 +115,11 @@ export function MatchModal({
                     person
                   </span>
                 ) : (
-                  <img
+                  <Image
                     src={matchedProfile.photoUrl}
-                    alt={matchedProfile.name}
+                    alt={`${matchedProfile.name}'s profile portrait`}
+                    width={96}
+                    height={96}
                     onError={() => setMatchedImgError(true)}
                     className="w-full h-full object-cover"
                   />

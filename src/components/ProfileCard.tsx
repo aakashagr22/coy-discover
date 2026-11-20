@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { ProfileDTO } from "@/lib/types";
 import { motion, MotionValue, useTransform } from "framer-motion";
 
@@ -92,9 +93,12 @@ export function ProfileCard({ profile, dragX, isTopCard = true }: ProfileCardPro
             <span className="text-xs text-on-surface-variant font-medium mt-1">Photo currently unavailable</span>
           </div>
         ) : (
-          <img
+          <Image
             src={profile.photoUrl}
-            alt={profile.name}
+            alt={`${profile.name}'s profile photo`}
+            fill
+            sizes="(max-width: 430px) 100vw, 400px"
+            priority={isTopCard}
             onError={() => setImageError(true)}
             className="w-full h-full object-cover select-none pointer-events-none"
           />

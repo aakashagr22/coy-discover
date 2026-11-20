@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 export const DEMO_USER_ID = "demo-user-alex";
 
-const mockProfiles = [
+export const mockProfiles = [
   {
     userId: "user-maya-24",
     name: "Maya",
@@ -13,17 +13,7 @@ const mockProfiles = [
     bio: "Coffee enthusiast, ceramicist on weekends, and chronic over-thinker about brutalist architecture. Looking for someone to explore hidden bookshops with.",
     cityOrCollege: "Brooklyn, NY • Pratt Institute",
     interests: ["Ceramics", "Modern Art", "Natural Wine", "Indie Cinema", "Vinyl Records"],
-    hasLikedDemoUser: true, // Will trigger instant match when swiped right
-  },
-  {
-    userId: "user-julian-26",
-    name: "Julian",
-    age: 26,
-    photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
-    bio: "Architect by day, espresso snob by morning. Always looking for the next best pour-over spot or minimalist gallery opening.",
-    cityOrCollege: "SoHo, NY • Columbia GSAPP",
-    interests: ["Architecture", "Specialty Coffee", "Cycling", "Typography", "Jazz"],
-    hasLikedDemoUser: true,
+    hasLikedDemoUser: true, // Deterministically matches when swiped right
   },
   {
     userId: "user-elena-25",
@@ -33,16 +23,16 @@ const mockProfiles = [
     bio: "Looking for someone to test eccentric dinner recipes on. Pottery studio regular and 35mm film photographer.",
     cityOrCollege: "Lower East Side, NY • NYU Tisch",
     interests: ["Pottery", "Film Noir", "Sourdough", "Thrifting", "Analogue Photography"],
-    hasLikedDemoUser: false,
+    hasLikedDemoUser: false, // Does not create match
   },
   {
-    userId: "user-marcus-27",
-    name: "Marcus",
-    age: 27,
-    photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
-    bio: "Documentary sound designer. I can tell you the best acoustic spots in Central Park. Let's trade favorite obscure albums.",
-    cityOrCollege: "Greenpoint, NY • Berklee",
-    interests: ["Vinyl Records", "Field Recording", "Matcha", "Synthesizers", "Botany"],
+    userId: "user-julian-26",
+    name: "Julian",
+    age: 26,
+    photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
+    bio: "Architect by day, espresso snob by morning. Always looking for the next best pour-over spot or minimalist gallery opening.",
+    cityOrCollege: "SoHo, NY • Columbia GSAPP",
+    interests: ["Architecture", "Specialty Coffee", "Cycling", "Typography", "Jazz"],
     hasLikedDemoUser: true,
   },
   {
@@ -56,23 +46,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-liam-28",
-    name: "Liam",
-    age: 28,
-    photoUrl: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=800&q=80",
-    bio: "Landscape architect passionate about urban rewilding. You'll usually find me bouldering or browsing second-hand furniture.",
-    cityOrCollege: "DUMBO, NY • Cornell University",
-    interests: ["Bouldering", "Urban Ecology", "Design", "Mid-Century Modern", "Plant Care"],
-    hasLikedDemoUser: true,
-  },
-  {
-    userId: "user-chloe-24",
-    name: "Chloe",
-    age: 24,
-    photoUrl: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
-    bio: "Curator in training. Fascinated by textile art and mid-century modern furniture. High probability of dragging you to a flea market.",
-    cityOrCollege: "Chelsea, NY • Hunter College",
-    interests: ["Modern Art", "Vintage Fashion", "Museums", "Coffee", "Ceramics"],
+    userId: "user-marcus-27",
+    name: "Marcus",
+    age: 27,
+    photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+    bio: "Documentary sound designer. I can tell you the best acoustic spots in Central Park. Let's trade favorite obscure albums.",
+    cityOrCollege: "Greenpoint, NY • Berklee",
+    interests: ["Vinyl Records", "Field Recording", "Matcha", "Synthesizers", "Botany"],
     hasLikedDemoUser: true,
   },
   {
@@ -86,13 +66,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-zara-26",
-    name: "Zara",
-    age: 26,
-    photoUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80",
-    bio: "Sustainable fashion researcher. Big fan of brutalist architecture, cardamom buns, and long city walks with zero destination.",
-    cityOrCollege: "East Village, NY • FIT",
-    interests: ["Sustainable Fashion", "Architecture", "Pastries", "Podcasts", "Modern Art"],
+    userId: "user-liam-28",
+    name: "Liam",
+    age: 28,
+    photoUrl: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=800&q=80",
+    bio: "Landscape architect passionate about urban rewilding. You'll usually find me bouldering or browsing second-hand furniture.",
+    cityOrCollege: "DUMBO, NY • Cornell University",
+    interests: ["Bouldering", "Urban Ecology", "Design", "Mid-Century Modern", "Plant Care"],
     hasLikedDemoUser: true,
   },
   {
@@ -106,13 +86,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-amelia-25",
-    name: "Amelia",
-    age: 25,
-    photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80",
-    bio: "Botanical illustrator. Plant collector with over 40 species in my studio apartment. Tea lover and avid reader.",
-    cityOrCollege: "Cobble Hill, NY • Cooper Union",
-    interests: ["Illustration", "Botany", "Herbal Tea", "Watercolors", "Reading"],
+    userId: "user-chloe-24",
+    name: "Chloe",
+    age: 24,
+    photoUrl: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
+    bio: "Curator in training. Fascinated by textile art and mid-century modern furniture. High probability of dragging you to a flea market.",
+    cityOrCollege: "Chelsea, NY • Hunter College",
+    interests: ["Modern Art", "Vintage Fashion", "Museums", "Coffee", "Ceramics"],
     hasLikedDemoUser: true,
   },
   {
@@ -126,13 +106,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-isla-22",
-    name: "Isla",
-    age: 22,
-    photoUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80",
-    bio: "Film studies senior. Obsessed with French New Wave and Wong Kar-wai. Seeking cinema partner for late night double features.",
-    cityOrCollege: "Astoria, NY • NYU",
-    interests: ["Indie Cinema", "French Cinema", "Film Photography", "Matcha", "Writing"],
+    userId: "user-amelia-25",
+    name: "Amelia",
+    age: 25,
+    photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80",
+    bio: "Botanical illustrator. Plant collector with over 40 species in my studio apartment. Tea lover and avid reader.",
+    cityOrCollege: "Cobble Hill, NY • Cooper Union",
+    interests: ["Illustration", "Botany", "Herbal Tea", "Watercolors", "Reading"],
     hasLikedDemoUser: true,
   },
   {
@@ -146,13 +126,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-mia-23",
-    name: "Mia",
-    age: 23,
-    photoUrl: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&fit=crop&w=800&q=80",
-    bio: "Ballet dancer transitioning to contemporary choreography. Always down for late night diner pancakes and honest conversations.",
-    cityOrCollege: "Fort Greene, NY • Juilliard",
-    interests: ["Contemporary Dance", "Yoga", "Vinyl Records", "Diners", "Thrifting"],
+    userId: "user-isla-22",
+    name: "Isla",
+    age: 22,
+    photoUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80",
+    bio: "Film studies senior. Obsessed with French New Wave and Wong Kar-wai. Seeking cinema partner for late night double features.",
+    cityOrCollege: "Astoria, NY • NYU",
+    interests: ["Indie Cinema", "French Cinema", "Film Photography", "Matcha", "Writing"],
     hasLikedDemoUser: true,
   },
   {
@@ -166,13 +146,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-olivia-25",
-    name: "Olivia",
-    age: 25,
-    photoUrl: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&q=80",
-    bio: "Environmental journalist. Love writing about ocean conservation and foraging wild mushrooms in upstate New York.",
-    cityOrCollege: "Bed-Stuy, NY • Columbia Journalism",
-    interests: ["Journalism", "Ecology", "Foraging", "Hiking", "Natural Wine"],
+    userId: "user-mia-23",
+    name: "Mia",
+    age: 23,
+    photoUrl: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&fit=crop&w=800&q=80",
+    bio: "Ballet dancer transitioning to contemporary choreography. Always down for late night diner pancakes and honest conversations.",
+    cityOrCollege: "Fort Greene, NY • Juilliard",
+    interests: ["Contemporary Dance", "Yoga", "Vinyl Records", "Diners", "Thrifting"],
     hasLikedDemoUser: true,
   },
   {
@@ -186,13 +166,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-hannah-26",
-    name: "Hannah",
-    age: 26,
-    photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
-    bio: "Independent bookstore manager. Ask me for recommendations based on what emotional state you want to experience.",
-    cityOrCollege: "Park Slope, NY • Sarah Lawrence",
-    interests: ["Bookshops", "Literature", "Tea", "Poetry", "Stationery"],
+    userId: "user-olivia-25",
+    name: "Olivia",
+    age: 25,
+    photoUrl: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&q=80",
+    bio: "Environmental journalist. Love writing about ocean conservation and foraging wild mushrooms in upstate New York.",
+    cityOrCollege: "Bed-Stuy, NY • Columbia Journalism",
+    interests: ["Journalism", "Ecology", "Foraging", "Hiking", "Natural Wine"],
     hasLikedDemoUser: true,
   },
   {
@@ -206,13 +186,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-camila-24",
-    name: "Camila",
-    age: 24,
-    photoUrl: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
-    bio: "Printmaker and risograph publisher. Running a small press for emerging poets. Let's make zines and drink espresso.",
-    cityOrCollege: "Greenpoint, NY • Cooper Union",
-    interests: ["Risograph", "Printmaking", "Zines", "Espresso", "Modern Art"],
+    userId: "user-hannah-26",
+    name: "Hannah",
+    age: 26,
+    photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80",
+    bio: "Independent bookstore manager. Ask me for recommendations based on what emotional state you want to experience.",
+    cityOrCollege: "Park Slope, NY • Sarah Lawrence",
+    interests: ["Bookshops", "Literature", "Tea", "Poetry", "Stationery"],
     hasLikedDemoUser: true,
   },
   {
@@ -226,13 +206,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-ava-23",
-    name: "Ava",
-    age: 23,
-    photoUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80",
-    bio: "Museum educator and amateur astronomer. Can point out constellations from a rooftop or critique modern sculptures.",
-    cityOrCollege: "Morningside Heights, NY • Barnard College",
-    interests: ["Astronomy", "Museums", "Modern Art", "Rooftops", "Reading"],
+    userId: "user-camila-24",
+    name: "Camila",
+    age: 24,
+    photoUrl: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
+    bio: "Printmaker and risograph publisher. Running a small press for emerging poets. Let's make zines and drink espresso.",
+    cityOrCollege: "Greenpoint, NY • Cooper Union",
+    interests: ["Risograph", "Printmaking", "Zines", "Espresso", "Modern Art"],
     hasLikedDemoUser: true,
   },
   {
@@ -246,13 +226,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-ruby-24",
-    name: "Ruby",
-    age: 24,
-    photoUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
-    bio: "Editorial photographer. Always carrying a Contax T2. Looking for somebody who doesn't mind being my muse.",
-    cityOrCollege: "Chinatown, NY • SVA",
-    interests: ["Analogue Photography", "Fashion", "Vinyl Records", "Dim Sum", "Cinema"],
+    userId: "user-ava-23",
+    name: "Ava",
+    age: 23,
+    photoUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80",
+    bio: "Museum educator and amateur astronomer. Can point out constellations from a rooftop or critique modern sculptures.",
+    cityOrCollege: "Morningside Heights, NY • Barnard College",
+    interests: ["Astronomy", "Museums", "Modern Art", "Rooftops", "Reading"],
     hasLikedDemoUser: true,
   },
   {
@@ -266,13 +246,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-clara-25",
-    name: "Clara",
-    age: 25,
-    photoUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80",
-    bio: "Exhibition designer. I make interactive spaces for museums. Huge fan of flea market finds and matcha lattes.",
-    cityOrCollege: "Williamsburg, NY • Pratt",
-    interests: ["Exhibition Design", "Matcha", "Thrifting", "Ceramics", "Modern Art"],
+    userId: "user-ruby-24",
+    name: "Ruby",
+    age: 24,
+    photoUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80",
+    bio: "Editorial photographer. Always carrying a Contax T2. Looking for somebody who doesn't mind being my muse.",
+    cityOrCollege: "Chinatown, NY • SVA",
+    interests: ["Analogue Photography", "Fashion", "Vinyl Records", "Dim Sum", "Cinema"],
     hasLikedDemoUser: true,
   },
   {
@@ -286,13 +266,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-sienna-23",
-    name: "Sienna",
-    age: 23,
-    photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80",
-    bio: "Jewelry metalsmith crafting whimsical silver rings. Let's wander through gem fairs and drink iced hojicha.",
-    cityOrCollege: "Tribeca, NY • FIT",
-    interests: ["Jewelry Design", "Metalsmithing", "Hojicha", "Art Galleries", "Pottery"],
+    userId: "user-clara-25",
+    name: "Clara",
+    age: 25,
+    photoUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80",
+    bio: "Exhibition designer. I make interactive spaces for museums. Huge fan of flea market finds and matcha lattes.",
+    cityOrCollege: "Williamsburg, NY • Pratt",
+    interests: ["Exhibition Design", "Matcha", "Thrifting", "Ceramics", "Modern Art"],
     hasLikedDemoUser: true,
   },
   {
@@ -306,13 +286,13 @@ const mockProfiles = [
     hasLikedDemoUser: false,
   },
   {
-    userId: "user-lily-24",
-    name: "Lily",
-    age: 24,
-    photoUrl: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&fit=crop&w=800&q=80",
-    bio: "Botanist specializing in indoor tropical plants. Can revive almost any sad plant you've given up on.",
-    cityOrCollege: "Clinton Hill, NY • Brooklyn Botanic Garden",
-    interests: ["Botany", "Houseplants", "Gardening", "Tea", "Biking"],
+    userId: "user-sienna-23",
+    name: "Sienna",
+    age: 23,
+    photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80",
+    bio: "Jewelry metalsmith crafting whimsical silver rings. Let's wander through gem fairs and drink iced hojicha.",
+    cityOrCollege: "Tribeca, NY • FIT",
+    interests: ["Jewelry Design", "Metalsmithing", "Hojicha", "Art Galleries", "Pottery"],
     hasLikedDemoUser: true,
   },
   {
@@ -325,19 +305,39 @@ const mockProfiles = [
     interests: ["Mid-Century Design", "Woodworking", "Jazz", "Espresso", "Flea Markets"],
     hasLikedDemoUser: false,
   },
+  {
+    userId: "user-lily-24",
+    name: "Lily",
+    age: 24,
+    photoUrl: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?auto=format&fit=crop&w=800&q=80",
+    bio: "Botanist specializing in indoor tropical plants. Can revive almost any sad plant you've given up on.",
+    cityOrCollege: "Clinton Hill, NY • Brooklyn Botanic Garden",
+    interests: ["Botany", "Houseplants", "Gardening", "Tea", "Biking"],
+    hasLikedDemoUser: true,
+  },
+  {
+    userId: "user-zara-26",
+    name: "Zara",
+    age: 26,
+    photoUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80",
+    bio: "Sustainable fashion researcher. Big fan of brutalist architecture, cardamom buns, and long city walks with zero destination.",
+    cityOrCollege: "East Village, NY • FIT",
+    interests: ["Sustainable Fashion", "Architecture", "Pastries", "Podcasts", "Modern Art"],
+    hasLikedDemoUser: true,
+  },
 ];
 
-async function main() {
+export async function seedDatabase(client: PrismaClient = prisma) {
   console.log("Seeding database for Coy Discover...");
 
   // Clean existing data
-  await prisma.match.deleteMany({});
-  await prisma.swipe.deleteMany({});
-  await prisma.profile.deleteMany({});
-  await prisma.user.deleteMany({});
+  await client.match.deleteMany({});
+  await client.swipe.deleteMany({});
+  await client.profile.deleteMany({});
+  await client.user.deleteMany({});
 
   // 1. Create Demo User
-  const demoUser = await prisma.user.create({
+  const demoUser = await client.user.create({
     data: {
       id: DEMO_USER_ID,
       name: "Alex",
@@ -354,12 +354,10 @@ async function main() {
     },
   });
 
-  console.log(`Created Demo User: ${demoUser.name} (${demoUser.id})`);
-
   // 2. Seed 32 Mock Profiles
   let incomingLikesCount = 0;
   for (const item of mockProfiles) {
-    const user = await prisma.user.create({
+    const user = await client.user.create({
       data: {
         id: item.userId,
         name: item.name,
@@ -378,7 +376,7 @@ async function main() {
 
     // 3. Pre-seed incoming like if specified
     if (item.hasLikedDemoUser) {
-      await prisma.swipe.create({
+      await client.swipe.create({
         data: {
           swiperId: user.id,
           targetId: DEMO_USER_ID,
@@ -393,11 +391,15 @@ async function main() {
   console.log(`Pre-seeded ${incomingLikesCount} incoming likes towards demo user (${DEMO_USER_ID}).`);
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+// Auto-run if executed directly as script
+const isMainScript = process.argv[1]?.replace(/\\/g, "/").includes("prisma/seed.ts");
+if (isMainScript && !process.env.VITEST) {
+  seedDatabase()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

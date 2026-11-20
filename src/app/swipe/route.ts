@@ -50,27 +50,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (error instanceof Error) {
-      if (error.message.startsWith("Conflict:")) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 409 }
-        );
-      }
-      if (error.message === "Target user profile not found") {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 404 }
-        );
-      }
-      if (error.message === "Cannot swipe on yourself") {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 400 }
-        );
-      }
-    }
-
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

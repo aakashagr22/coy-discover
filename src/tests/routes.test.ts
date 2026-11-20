@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { GET as getFeedHandler } from "../app/feed/route";
 import { POST as postSwipeHandler } from "../app/swipe/route";
 import { GET as getMatchesHandler } from "../app/matches/route";
@@ -160,5 +160,29 @@ describe("Coy Discover Route Handlers Integration", () => {
 
     const statuses = responses.map((r) => r.status).sort();
     expect(statuses).toEqual([200, 409]);
+  });
+
+  it("GET /feed returns HTTP 500 on unexpected service failure", async () => {
+    const originalFindMany = prisma.profile.findMany;
+    (prisma.profile as any).findMany = vi.fn().mockRejectedValueOnce(new Error("Database connection lost"));
+
+    const res = await getFeedHandler();
+    expect(res.status).toBe(500);
+    const data = await res.json();
+    expect(data.error).toBe("Failed to retrieve feed profiles");
+
+    prisma.profile.findMany = originalFindMany;
+  });
+
+  it("GET /matches returns HTTP 500 on unexpected service failure", async () => {
+    const originalFindMany = prisma.match.findMany;
+    (prisma.match as any).findMany = vi.fn().mockRejectedValueOnce(new Error("Database connection lost"));
+
+    const res = await getMatchesHandler();
+    expect(res.status).toBe(500);
+    const data = await res.json();
+    expect(data.error).toBe("Failed to retrieve matches");
+
+    prisma.match.findMany = originalFindMany;
   });
 });

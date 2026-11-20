@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 interface HeaderProps {
   currentTab: "home" | "discover";
@@ -56,10 +57,12 @@ export function Header({ currentTab, onTabChange }: HeaderProps) {
         <div className="flex items-center shrink-0">
           <div className="relative flex items-center justify-center">
             <div className="p-[2px] rounded-full bg-secondary-container border border-ink/20">
-              <img
-                alt="Alex Avatar"
+              <Image
+                alt="Your profile avatar (Alex)"
                 className="w-8 h-8 rounded-full object-cover"
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                width={32}
+                height={32}
               />
             </div>
             <span

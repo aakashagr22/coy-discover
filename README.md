@@ -4,7 +4,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict_Mode-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-Neo--Tactile_Romance-38bdf8?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat&logo=prisma)](https://www.prisma.io/)
-[![Vitest](https://img.shields.io/badge/Vitest-11_Tests_Passing-green?style=flat&logo=vitest)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-36_Tests_Passing-green?style=flat&logo=vitest)](https://vitest.dev/)
 
 A production-minded, privacy-first swipe discovery feature built for Coy as a standalone Next.js App Router application.
 
@@ -220,15 +220,22 @@ pnpm install
 npm install
 ```
 
-### 3. Environment Variables
+### 3. Environment Variables & Database Isolation
 Create a local `.env` file based on [.env.example](.env.example):
 ```bash
 cp .env.example .env
 ```
-Ensure `DATABASE_URL` is set to your SQLite file location:
+Ensure `DATABASE_URL` is set to your SQLite development database:
 ```env
 DATABASE_URL="file:./dev.db"
 ```
+
+#### Automated Test Database Isolation
+Automated tests strictly protect `prisma/dev.db`. The test suite runs against an isolated SQLite test database (`prisma/test.db`) with an automated setup:
+- **Development**: `DATABASE_URL="file:./dev.db"`
+- **Automated Tests**: `DATABASE_URL="file:./test.db"` (configured in `vitest.config.ts`)
+- **Auto-Initialization**: Test database schema and mock seed data initialize automatically on first test run.
+- **Fail-Safe Guard**: Test execution aborts immediately if `DATABASE_URL` does not point to `test.db`, ensuring development records are never wiped or modified during testing.
 
 ### 4. Database Migration & Seed Commands
 Initialize the SQLite database schema and populate it with 32 realistic mock profiles:
@@ -263,7 +270,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | Task | Command | Description |
 | :--- | :--- | :--- |
 | **Start Dev Server** | `pnpm dev` | Starts Next.js development server at port 3000 |
-| **Run All Tests** | `pnpm test` | Runs the full Vitest suite (11 unit & integration tests) |
+| **Run All Tests** | `pnpm test` | Runs the full Vitest suite (36 unit, integration, isolation, and reconciliation tests) |
 | **Run Tests in Watch Mode** | `pnpm test:watch` | Runs Vitest in interactive watch mode |
 | **TypeScript Typecheck** | `npx tsc --noEmit` | Strict static type validation |
 | **Next.js ESLint** | `npx next lint` | Runs ESLint with Next.js Core Web Vitals config |
@@ -381,33 +388,15 @@ Returns all mutual connections for the demo user.
 
 ---
 
-## Production Deployment & Persistence Guide
+## Deployment & Persistence Notes
 
-### The Ephemeral Storage Constraint
-Serverless container platforms (e.g. Vercel, Netlify, AWS Lambda) feature ephemeral file systems. **Local SQLite databases (`file:./dev.db`) will be reset upon container restarts or cold starts.** 
+### Local Evaluation with SQLite
+The application uses SQLite (`file:./dev.db`) managed through Prisma ORM for standalone local evaluation without requiring external database dependencies.
 
-For production deployment, use one of the following persistent architectures:
-
-### Option A: Hosted PostgreSQL (Recommended for Serverless)
-1. Provision a free PostgreSQL instance on [Supabase](https://supabase.com/), [Neon](https://neon.tech/), or [Railway](https://railway.app/).
-2. In `prisma/schema.prisma`, update the datasource provider:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
-3. Set your environment variable in your production host dashboard:
-   ```env
-   DATABASE_URL="postgresql://username:password@ep-host.region.neon.tech/neondb?sslmode=require"
-   ```
-4. Run `npx prisma db push` and `npx tsx prisma/seed.ts` via build hooks or deployment scripts.
-
-### Option B: Docker Container with Persistent Volume Mount
-If deploying to Railway, Fly.io, or a VPS with Docker:
-1. Mount a persistent disk volume to `/app/data`.
-2. Configure `DATABASE_URL="file:/app/data/production.db"`.
-3. Swipes and matches will persist across container re-deployments.
+### Serverless vs Persistent Hosting
+Serverless hosting platforms (such as Vercel) have ephemeral file systems where local files are discarded between function invocations. For a production deployment:
+- **Docker / Persistent Host (e.g., Railway, Fly.io, VPS):** Mount a persistent volume (e.g., `/app/data`) and configure `DATABASE_URL="file:/app/data/production.db"`.
+- **Managed Database Service:** When migrating to a hosted cloud database, update the Prisma datasource provider and connection string accordingly.
 
 ---
 

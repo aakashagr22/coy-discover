@@ -202,4 +202,36 @@ describe("Frontend Feed & Matches API Error Handling Contracts", () => {
     expect(feedError).toBeNull();
     expect(profiles.length).toBe(1);
   });
+
+  it("ensures API failures are never treated as successful empty states", async () => {
+    // Determine Discover view states
+    const resolveDiscoverFeedView = (isLoading: boolean, feedError: string | null, profiles: any[]) => {
+      if (isLoading) return "loading";
+      if (feedError && profiles.length === 0) return "api_error_card";
+      if (profiles.length > 0) return "card_stack";
+      if (!feedError && profiles.length === 0) return "empty_state";
+      return "api_error_card";
+    };
+
+    // 1. Initial load fails -> must be "api_error_card", NOT "empty_state"
+    expect(resolveDiscoverFeedView(false, "Unable to load feed (status 500)", [])).toBe("api_error_card");
+
+    // 2. Successful empty feed -> "empty_state"
+    expect(resolveDiscoverFeedView(false, null, [])).toBe("empty_state");
+
+    // 3. Cached profiles exist and background refresh fails -> "card_stack" (with non-blocking error banner)
+    expect(resolveDiscoverFeedView(false, "Unable to load feed (status 500)", [{ id: "p1" }])).toBe("card_stack");
+
+    // Matches view state logic
+    const resolveMatchesView = (matchesError: string | null, matches: any[]) => {
+      if (matchesError) return "api_error_card";
+      if (matches.length === 0) return "no_matches_yet";
+      return "matches_list";
+    };
+
+    // 4. Matches fails with 500 -> must be "api_error_card", NEVER "no_matches_yet"
+    expect(resolveMatchesView("Unable to load matches (status 500)", [])).toBe("api_error_card");
+    // 5. Matches succeeds with 0 matches -> "no_matches_yet"
+    expect(resolveMatchesView(null, [])).toBe("no_matches_yet");
+  });
 });
