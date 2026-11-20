@@ -4,7 +4,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict_Mode-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-Neo--Tactile_Romance-38bdf8?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat&logo=prisma)](https://www.prisma.io/)
-[![Vitest](https://img.shields.io/badge/Vitest-36_Tests_Passing-green?style=flat&logo=vitest)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-38_Tests_Passing-green?style=flat&logo=vitest)](https://vitest.dev/)
 
 A production-minded, privacy-first swipe discovery feature built for Coy as a standalone Next.js App Router application.
 
@@ -270,7 +270,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | Task | Command | Description |
 | :--- | :--- | :--- |
 | **Start Dev Server** | `pnpm dev` | Starts Next.js development server at port 3000 |
-| **Run All Tests** | `pnpm test` | Runs the full Vitest suite (36 unit, integration, isolation, and reconciliation tests) |
+| **Run All Tests** | `pnpm test` | Runs the full Vitest suite (38 unit, integration, isolation, and reconciliation tests) |
 | **Run Tests in Watch Mode** | `pnpm test:watch` | Runs Vitest in interactive watch mode |
 | **TypeScript Typecheck** | `npx tsc --noEmit` | Strict static type validation |
 | **Next.js ESLint** | `npx next lint` | Runs ESLint with Next.js Core Web Vitals config |

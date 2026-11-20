@@ -55,6 +55,64 @@ describe("Failed-Swipe Feed Reconciliation Logic", () => {
     }
   }
 
+  it("handles successful like action and keeps card removed", async () => {
+    const swiped = { userId: "user-maya-24", name: "Maya" };
+    const remaining = [{ userId: "user-elena-25", name: "Elena" }];
+    let currentProfiles = [swiped, ...remaining];
+    let errorMessage: string | null = null;
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, match: true }),
+    });
+
+    const fetchFeedMock = vi.fn();
+
+    await simulateHandleSwipe(
+      "like",
+      swiped,
+      currentProfiles,
+      fetchFeedMock,
+      (msg) => { errorMessage = msg; },
+      (updater) => { currentProfiles = updater(currentProfiles); }
+    );
+
+    expect(fetchFeedMock).not.toHaveBeenCalled();
+    expect(errorMessage).toBeNull();
+    expect(currentProfiles.some((p) => p.userId === "user-maya-24")).toBe(false);
+    expect(currentProfiles.length).toBe(1);
+  });
+
+  it("handles successful pass action and keeps card removed", async () => {
+    const swiped = { userId: "user-elena-25", name: "Elena" };
+    const remaining = [{ userId: "user-julian-26", name: "Julian" }];
+    let currentProfiles = [swiped, ...remaining];
+    let errorMessage: string | null = null;
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, match: false }),
+    });
+
+    const fetchFeedMock = vi.fn();
+
+    await simulateHandleSwipe(
+      "pass",
+      swiped,
+      currentProfiles,
+      fetchFeedMock,
+      (msg) => { errorMessage = msg; },
+      (updater) => { currentProfiles = updater(currentProfiles); }
+    );
+
+    expect(fetchFeedMock).not.toHaveBeenCalled();
+    expect(errorMessage).toBeNull();
+    expect(currentProfiles.some((p) => p.userId === "user-elena-25")).toBe(false);
+    expect(currentProfiles.length).toBe(1);
+  });
+
   it("reconciles feed on HTTP 409 without blindly restoring swiped profile", async () => {
     const swiped = { userId: "user-maya-24", name: "Maya" };
     const remaining = [{ userId: "user-elena-25", name: "Elena" }];

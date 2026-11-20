@@ -23,9 +23,9 @@ describe("Test Database Isolation & Fail-Safe Verification", () => {
     expect(devDbStats.size).toBeGreaterThan(0);
   });
 
-  it("fail-safe validation rejects non-test database URL", () => {
+  it("fail-safe validation rejects any database URL other than the exact expected test database", () => {
     const validateDbUrl = (url: string) => {
-      if (!url.includes("test.db")) {
+      if (!url.includes("test.db") || url === "file:./dev.db" || url.includes("dev.db")) {
         throw new Error(
           `CRITICAL FAIL-SAFE TRIGGERED: Automated tests must run against test.db! Current DATABASE_URL: "${url}".`
         );
@@ -34,7 +34,9 @@ describe("Test Database Isolation & Fail-Safe Verification", () => {
     };
 
     expect(() => validateDbUrl("file:./dev.db")).toThrow(/CRITICAL FAIL-SAFE/);
+    expect(() => validateDbUrl("file:./dev.db?connection_limit=1")).toThrow(/CRITICAL FAIL-SAFE/);
     expect(() => validateDbUrl("postgresql://prod/db")).toThrow(/CRITICAL FAIL-SAFE/);
+    expect(() => validateDbUrl("")).toThrow(/CRITICAL FAIL-SAFE/);
     expect(validateDbUrl("file:./test.db")).toBe(true);
   });
 });
