@@ -6,6 +6,8 @@ import { MatchItemDTO } from "@/lib/types";
 interface MatchesViewProps {
   matches: MatchItemDTO[];
   onBackToDiscover: () => void;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
 function MatchCard({ match }: { match: MatchItemDTO }) {
@@ -100,7 +102,12 @@ function MatchCard({ match }: { match: MatchItemDTO }) {
   );
 }
 
-export function MatchesView({ matches, onBackToDiscover }: MatchesViewProps) {
+export function MatchesView({
+  matches,
+  onBackToDiscover,
+  error,
+  onRetry,
+}: MatchesViewProps) {
   return (
     <div className="flex flex-col w-full pb-8">
       {/* Top Navigation & Back Row */}
@@ -120,13 +127,34 @@ export function MatchesView({ matches, onBackToDiscover }: MatchesViewProps) {
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-extrabold text-ink">Mutual Matches</h1>
           <span className="px-2 py-0.5 rounded-full bg-coy-pink text-white text-xs font-bold border border-ink shadow-tactile-active">
-            {matches.length}
+            {error ? "!" : matches.length}
           </span>
         </div>
       </div>
 
-      {/* Matches List */}
-      {matches.length === 0 ? (
+      {/* Matches Content: Error vs Empty vs List */}
+      {error ? (
+        <div className="w-full bg-[#FFEAEB] rounded-[28px] border-2 border-ink shadow-tactile p-6 flex flex-col items-center text-center my-6">
+          <div className="w-16 h-16 rounded-full bg-white border-2 border-ink flex items-center justify-center text-rose-600 shadow-tactile-sm mb-3">
+            <span className="material-symbols-outlined text-[28px]">
+              error_outline
+            </span>
+          </div>
+          <h3 className="text-lg font-bold text-ink mb-1">Failed to load matches</h3>
+          <p className="text-xs text-on-surface-variant max-w-[240px] leading-relaxed mb-4">
+            {error}. Please check your connection and try again.
+          </p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="px-5 py-2 rounded-full bg-coy-pink text-white text-xs font-bold border-2 border-ink shadow-tactile-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-tactile-active transition-all"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      ) : matches.length === 0 ? (
         <div className="w-full bg-[#E9E0FF]/35 rounded-[28px] border-2 border-ink shadow-tactile p-6 flex flex-col items-center text-center my-6">
           <div className="w-16 h-16 rounded-full bg-white border-2 border-ink flex items-center justify-center text-coy-pink shadow-tactile-sm mb-3">
             <span

@@ -5,13 +5,15 @@ import React, { useState } from "react";
 interface EmptyStateProps {
   matchesCount: number;
   onViewMatches: () => void;
-  onRefresh: () => Promise<void>;
+  onRefresh: () => Promise<boolean | void>;
+  error?: string | null;
 }
 
 export function EmptyState({
   matchesCount,
   onViewMatches,
   onRefresh,
+  error,
 }: EmptyStateProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshLabel, setRefreshLabel] = useState("Check Again");
@@ -21,13 +23,19 @@ export function EmptyState({
     setRefreshLabel("Checking feed...");
 
     try {
-      await onRefresh();
-      setRefreshLabel("Still Up to Date!");
+      const result = await onRefresh();
+      if (result === false) {
+        setRefreshLabel("Couldn't refresh feed");
+      } else {
+        setRefreshLabel("Still Up to Date!");
+      }
+    } catch {
+      setRefreshLabel("Couldn't refresh feed");
     } finally {
       setTimeout(() => {
         setRefreshLabel("Check Again");
         setIsRefreshing(false);
-      }, 1200);
+      }, 1500);
     }
   };
 

@@ -18,31 +18,63 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSwiping, setIsSwiping] = useState<boolean>(false);
   const [activeMatch, setActiveMatch] = useState<ProfileDTO | null>(null);
+  const [feedError, setFeedError] = useState<string | null>(null);
+  const [matchesError, setMatchesError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch Feed Profiles
-  const fetchFeed = useCallback(async () => {
+  const fetchFeed = useCallback(async (): Promise<boolean> => {
     try {
       const res = await fetch("/feed");
-      if (res.ok) {
-        const data = await res.json();
-        setProfiles(data.profiles || []);
+      if (!res.ok) {
+        const errorText = `Unable to load feed (status ${res.status})`;
+        setFeedError(errorText);
+        return false;
       }
+
+      const data = await res.json();
+      if (!data || !Array.isArray(data.profiles)) {
+        setFeedError("Invalid feed data format received from server");
+        return false;
+      }
+
+      // Successful response: update profiles and clear error
+      setProfiles(data.profiles);
+      setFeedError(null);
+      return true;
     } catch (err) {
       console.error("Failed to load feed:", err);
+      const networkError = "Network error while connecting to feed";
+      setFeedError(networkError);
+      return false;
     }
   }, []);
 
   // Fetch Mutual Matches
-  const fetchMatches = useCallback(async () => {
+  const fetchMatches = useCallback(async (): Promise<boolean> => {
     try {
       const res = await fetch("/matches");
-      if (res.ok) {
-        const data = await res.json();
-        setMatches(data.matches || []);
+      if (!res.ok) {
+        const errorText = `Unable to load matches (status ${res.status})`;
+        setMatchesError(errorText);
+        return false;
       }
+
+      const data = await res.json();
+      if (!data || !Array.isArray(data.matches)) {
+        setMatchesError("Invalid matches data format received from server");
+        return false;
+      }
+
+      // Successful response: update matches and clear error
+      setMatches(data.matches);
+      setMatchesError(null);
+      return true;
     } catch (err) {
       console.error("Failed to load matches:", err);
+      const networkError = "Network error while loading matches";
+      setMatchesError(networkError);
+      return false;
     }
   }, []);
 
@@ -144,7 +176,29 @@ export default function App() {
               <MatchesView
                 matches={matches}
                 onBackToDiscover={() => setActiveDiscoverView("feed")}
+                error={matchesError}
+                onRetry={fetchMatches}
               />
+            ) : feedError && profiles.length === 0 ? (
+              /* Feed API Error State (When no profiles are cached) */
+              <div className="w-full bg-[#FFEAEB] rounded-[28px] border-2 border-ink shadow-tactile p-6 flex flex-col items-center text-center my-auto">
+                <div className="w-16 h-16 rounded-full bg-white border-2 border-ink flex items-center justify-center text-rose-600 shadow-tactile-sm mb-3">
+                  <span className="material-symbols-outlined text-[28px]">
+                    cloud_off
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-ink mb-1">Couldn&apos;t load feed</h3>
+                <p className="text-xs text-on-surface-variant max-w-[240px] leading-relaxed mb-4">
+                  {feedError}. Please check your connection and try again.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fetchFeed()}
+                  className="px-5 py-2 rounded-full bg-coy-pink text-white text-xs font-bold border-2 border-ink shadow-tactile-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-tactile-active transition-all"
+                >
+                  Retry
+                </button>
+              </div>
             ) : profiles.length > 0 ? (
               /* Card Stack Swiping Feed */
               <CardStack
@@ -158,6 +212,7 @@ export default function App() {
                 matchesCount={matches.length}
                 onViewMatches={() => setActiveDiscoverView("matches")}
                 onRefresh={fetchFeed}
+                error={feedError}
               />
             )}
           </div>
