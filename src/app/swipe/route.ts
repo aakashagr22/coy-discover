@@ -23,7 +23,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (error: any) {
     console.error("POST /swipe error:", error);
-    const status = error.message === "Target user profile not found" ? 404 : 500;
+    let status = 500;
+    if (error.message === "Target user profile not found") {
+      status = 404;
+    } else if (error.message?.startsWith("Conflict:")) {
+      status = 409;
+    }
     return NextResponse.json(
       { error: error.message || "Failed to record swipe" },
       { status }

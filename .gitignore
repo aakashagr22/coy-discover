@@ -20,10 +20,8 @@ prisma/*.db
 prisma/*.db-journal
 
 # Environment variables & secrets
-.env
-.env*.local
-.env.production
-.env.staging
+.env*
+!.env.example
 *.pem
 *.key
 *.cert

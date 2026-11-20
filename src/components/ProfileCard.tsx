@@ -69,16 +69,31 @@ const INTEREST_EMOJIS: Record<string, string> = {
 };
 
 export function ProfileCard({ profile, dragX, isTopCard = true }: ProfileCardProps) {
+  const [imageError, setImageError] = React.useState(false);
+
   return (
     <div className="relative w-full rounded-[28px] overflow-hidden bg-white border-2 border-ink shadow-tactile-lg select-none">
       {/* Top Image Area */}
       <div className="relative w-full aspect-[4/5] bg-surface-container overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={profile.photoUrl}
-          alt={profile.name}
-          className="w-full h-full object-cover select-none pointer-events-none"
-        />
+        {imageError ? (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-secondary-fixed/50 p-6 text-center text-ink select-none">
+            <span
+              className="material-symbols-outlined text-[64px] text-coy-pink/70 mb-2"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              person
+            </span>
+            <span className="font-extrabold text-lg text-ink">{profile.name}</span>
+            <span className="text-xs text-on-surface-variant font-medium mt-1">Photo currently unavailable</span>
+          </div>
+        ) : (
+          <img
+            src={profile.photoUrl}
+            alt={profile.name}
+            onError={() => setImageError(true)}
+            className="w-full h-full object-cover select-none pointer-events-none"
+          />
+        )}
 
         {/* Visual Swipe Reaction Stamps (revealed on drag) */}
         {isTopCard && dragX && <SwipeStamps dragX={dragX} />}
@@ -91,9 +106,6 @@ export function ProfileCard({ profile, dragX, isTopCard = true }: ProfileCardPro
           <h2 className="text-2xl font-extrabold text-ink tracking-tight">
             {profile.name}, {profile.age}
           </h2>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-secondary-fixed text-ink text-[11px] font-bold border border-ink/40">
-            Active
-          </span>
         </div>
 
         {/* Location & College */}

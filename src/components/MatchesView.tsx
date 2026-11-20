@@ -8,6 +8,98 @@ interface MatchesViewProps {
   onBackToDiscover: () => void;
 }
 
+function MatchCard({ match }: { match: MatchItemDTO }) {
+  const [imageError, setImageError] = React.useState(false);
+
+  return (
+    <div className="bg-white rounded-2xl p-3.5 border-2 border-ink shadow-tactile relative overflow-hidden transition-all hover:translate-y-[-1px]">
+      <div className="flex gap-3 items-center">
+        {/* Thumbnail */}
+        <div className="relative shrink-0 w-20 h-24 rounded-xl overflow-hidden bg-surface-container border border-ink flex items-center justify-center">
+          {imageError ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-secondary-fixed/50 p-1 text-center">
+              <span
+                className="material-symbols-outlined text-[28px] text-coy-pink/70"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                person
+              </span>
+              <span className="text-[10px] font-bold text-ink truncate max-w-[70px]">
+                {match.profile.name}
+              </span>
+            </div>
+          ) : (
+            <img
+              src={match.profile.photoUrl}
+              alt={match.profile.name}
+              onError={() => setImageError(true)}
+              className="w-full h-full object-cover"
+            />
+          )}
+          <span className="absolute bottom-1 right-1 p-1 bg-white/95 rounded-full flex items-center justify-center border border-ink/20 shadow-sm">
+            <span
+              className="material-symbols-outlined text-[13px] text-coy-pink"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              favorite
+            </span>
+          </span>
+        </div>
+
+        {/* Info Column */}
+        <div className="flex flex-col flex-1 min-w-0 justify-between">
+          <div>
+            <h2 className="text-base font-extrabold text-ink truncate">
+              {match.profile.name}, {match.profile.age}
+            </h2>
+            <p className="text-xs text-on-surface-variant flex items-center gap-1 mt-0.5 truncate font-medium">
+              <span className="material-symbols-outlined text-[14px] shrink-0 text-coy-pink">
+                location_on
+              </span>
+              <span className="truncate">{match.profile.cityOrCollege}</span>
+            </p>
+          </div>
+
+          {/* Shared Passions */}
+          <div className="flex flex-wrap gap-1 mt-2">
+            {match.profile.interests.slice(0, 2).map((interest, idx) => (
+              <span
+                key={idx}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold border border-ink ${
+                  idx === 0
+                    ? "bg-coy-pink text-white"
+                    : "bg-secondary-fixed text-ink"
+                }`}
+              >
+                {interest}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Clean Action / Status Row */}
+      <div className="mt-2.5 pt-2 flex items-center justify-between border-t border-ink/10">
+        <span className="inline-flex items-center gap-1 text-coy-pink text-[11px] font-bold">
+          <span
+            className="material-symbols-outlined text-[13px]"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            favorite
+          </span>
+          Mutual Match
+        </span>
+        <span className="text-[10px] text-on-surface-variant">
+          {new Date(match.matchedAt).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          })}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function MatchesView({ matches, onBackToDiscover }: MatchesViewProps) {
   return (
     <div className="flex flex-col w-full pb-8">
@@ -59,79 +151,7 @@ export function MatchesView({ matches, onBackToDiscover }: MatchesViewProps) {
       ) : (
         <div className="flex flex-col gap-3">
           {matches.map((match) => (
-            <div
-              key={match.id}
-              className="bg-white rounded-2xl p-3.5 border-2 border-ink shadow-tactile relative overflow-hidden transition-all hover:translate-y-[-1px]"
-            >
-              <div className="flex gap-3 items-center">
-                {/* Thumbnail */}
-                <div className="relative shrink-0 w-20 h-24 rounded-xl overflow-hidden bg-surface-container border border-ink">
-                  <img
-                    src={match.profile.photoUrl}
-                    alt={match.profile.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="absolute bottom-1 right-1 p-1 bg-white/95 rounded-full flex items-center justify-center border border-ink/20 shadow-sm">
-                    <span
-                      className="material-symbols-outlined text-[13px] text-coy-pink"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      favorite
-                    </span>
-                  </span>
-                </div>
-
-                {/* Info Column */}
-                <div className="flex flex-col flex-1 min-w-0 justify-between">
-                  <div>
-                    <h2 className="text-base font-extrabold text-ink truncate">
-                      {match.profile.name}, {match.profile.age}
-                    </h2>
-                    <p className="text-xs text-on-surface-variant flex items-center gap-1 mt-0.5 truncate font-medium">
-                      <span className="material-symbols-outlined text-[14px] shrink-0 text-coy-pink">
-                        location_on
-                      </span>
-                      <span className="truncate">{match.profile.cityOrCollege}</span>
-                    </p>
-                  </div>
-
-                  {/* Shared Passions */}
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {match.profile.interests.slice(0, 2).map((interest, idx) => (
-                      <span
-                        key={idx}
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border border-ink ${
-                          idx === 0
-                            ? "bg-coy-pink text-white"
-                            : "bg-secondary-fixed text-ink"
-                        }`}
-                      >
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Clean Action / Status Row */}
-              <div className="mt-2.5 pt-2 flex items-center justify-between border-t border-ink/10">
-                <span className="inline-flex items-center gap-1 text-coy-pink text-[11px] font-bold">
-                  <span
-                    className="material-symbols-outlined text-[13px]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    favorite
-                  </span>
-                  Mutual Match
-                </span>
-                <span className="text-[10px] text-on-surface-variant">
-                  {new Date(match.matchedAt).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-            </div>
+            <MatchCard key={match.id} match={match} />
           ))}
         </div>
       )}

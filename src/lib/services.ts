@@ -93,16 +93,51 @@ export async function recordSwipe(
 
   // Execute in transaction
   return await prisma.$transaction(async (tx) => {
-    // 1. Upsert swipe record
-    await tx.swipe.upsert({
+    // 1. Check for existing swipe by this user on target to enforce immutability
+    const existingSwipe = await tx.swipe.findUnique({
       where: {
         swiperId_targetId: {
           swiperId,
           targetId: targetUserId,
         },
       },
-      update: { action },
-      create: {
+    });
+
+    if (existingSwipe) {
+      // Conflicting decision: reject mutation
+      if (existingSwipe.action !== action) {
+        throw new Error("Conflict: Profile has already been swiped on with a different decision");
+      }
+
+      // Idempotent retry: return previously computed outcome
+      if (action === "pass") {
+        return {
+          success: true,
+          match: false,
+        };
+      }
+
+      // If existing action was 'like', check if mutual match exists
+      const [userAId, userBId] = [swiperId, targetUserId].sort();
+      const existingMatch = await tx.match.findUnique({
+        where: {
+          userAId_userBId: {
+            userAId,
+            userBId,
+          },
+        },
+      });
+
+      return {
+        success: true,
+        match: Boolean(existingMatch),
+        matchedProfile: existingMatch ? formatProfile(targetProfile) : undefined,
+      };
+    }
+
+    // 2. Create new immutable swipe record
+    await tx.swipe.create({
+      data: {
         swiperId,
         targetId: targetUserId,
         action,
@@ -117,7 +152,7 @@ export async function recordSwipe(
       };
     }
 
-    // 2. If liked, check if target has also liked swiper
+    // 3. If liked, check if target has also liked swiper
     const reciprocalSwipe = await tx.swipe.findUnique({
       where: {
         swiperId_targetId: {

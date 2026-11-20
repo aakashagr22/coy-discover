@@ -81,4 +81,45 @@ describe("Coy Discover Route Handlers Integration", () => {
     expect(data.count).toBe(1);
     expect(data.matches[0].profile.name).toBe("Maya");
   });
+
+  it("POST /swipe handles idempotent retries for same action", async () => {
+    const req1 = new NextRequest("http://localhost:3000/swipe", {
+      method: "POST",
+      body: JSON.stringify({ targetUserId: "user-maya-24", action: "like" }),
+    });
+    const res1 = await postSwipeHandler(req1);
+    expect(res1.status).toBe(200);
+    const data1 = await res1.json();
+    expect(data1.match).toBe(true);
+
+    // Repeated request with same action
+    const req2 = new NextRequest("http://localhost:3000/swipe", {
+      method: "POST",
+      body: JSON.stringify({ targetUserId: "user-maya-24", action: "like" }),
+    });
+    const res2 = await postSwipeHandler(req2);
+    expect(res2.status).toBe(200);
+    const data2 = await res2.json();
+    expect(data2.match).toBe(true);
+  });
+
+  it("POST /swipe returns 409 Conflict when attempting to change a swipe decision", async () => {
+    // 1. First swipe: like
+    const req1 = new NextRequest("http://localhost:3000/swipe", {
+      method: "POST",
+      body: JSON.stringify({ targetUserId: "user-maya-24", action: "like" }),
+    });
+    const res1 = await postSwipeHandler(req1);
+    expect(res1.status).toBe(200);
+
+    // 2. Conflicting swipe: pass
+    const req2 = new NextRequest("http://localhost:3000/swipe", {
+      method: "POST",
+      body: JSON.stringify({ targetUserId: "user-maya-24", action: "pass" }),
+    });
+    const res2 = await postSwipeHandler(req2);
+    expect(res2.status).toBe(409);
+    const data2 = await res2.json();
+    expect(data2.error).toMatch(/Conflict/);
+  });
 });

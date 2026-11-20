@@ -15,6 +15,9 @@ export function MatchModal({
   onContinue,
   onViewMatches,
 }: MatchModalProps) {
+  const [userImgError, setUserImgError] = React.useState(false);
+  const [matchedImgError, setMatchedImgError] = React.useState(false);
+
   if (!matchedProfile) return null;
 
   // Find common or prominent interests to display in badge
@@ -69,12 +72,22 @@ export function MatchModal({
           <div className="relative flex items-center justify-center w-full my-2 mb-6">
             {/* Left: User Avatar (Alex) */}
             <div className="relative z-10 -mr-4 w-24 h-24 rounded-full p-[3px] bg-secondary-fixed border-2 border-ink shadow-tactile">
-              <div className="w-full h-full rounded-full overflow-hidden bg-surface-container">
-                <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
-                  alt="You"
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-full h-full rounded-full overflow-hidden bg-surface-container flex items-center justify-center">
+                {userImgError ? (
+                  <span
+                    className="material-symbols-outlined text-[36px] text-ink/60"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    person
+                  </span>
+                ) : (
+                  <img
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
+                    alt="You"
+                    onError={() => setUserImgError(true)}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             </div>
 
@@ -90,12 +103,22 @@ export function MatchModal({
 
             {/* Right: Matched Profile Portrait */}
             <div className="relative z-20 w-24 h-24 rounded-full p-[3px] bg-coy-pink border-2 border-ink shadow-tactile">
-              <div className="w-full h-full rounded-full overflow-hidden bg-surface-container">
-                <img
-                  src={matchedProfile.photoUrl}
-                  alt={matchedProfile.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-full h-full rounded-full overflow-hidden bg-surface-container flex items-center justify-center">
+                {matchedImgError ? (
+                  <span
+                    className="material-symbols-outlined text-[36px] text-white"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    person
+                  </span>
+                ) : (
+                  <img
+                    src={matchedProfile.photoUrl}
+                    alt={matchedProfile.name}
+                    onError={() => setMatchedImgError(true)}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             </div>
           </div>

@@ -127,4 +127,98 @@ describe("Coy Discover Core Matching & Privacy Rules", () => {
     const matches = await getMutualMatches();
     expect(matches.some((m) => m.profile.userId === "user-julian-26")).toBe(true);
   });
+
+  describe("Swipe Immutability & Conflict Handling", () => {
+    it("handles repeated swipes with identical action idempotently without duplicate records", async () => {
+      // 1. Initial swipe: Like Maya (who already liked demo user)
+      const firstResult = await recordSwipe({
+        targetUserId: "user-maya-24",
+        action: "like",
+      });
+      expect(firstResult.success).toBe(true);
+      expect(firstResult.match).toBe(true);
+
+      // 2. Retry: Same swipe action
+      const retryResult = await recordSwipe({
+        targetUserId: "user-maya-24",
+        action: "like",
+      });
+      expect(retryResult.success).toBe(true);
+      expect(retryResult.match).toBe(true);
+      expect(retryResult.matchedProfile?.userId).toBe("user-maya-24");
+
+      // Verify only 1 swipe record exists in DB for this pair
+      const swipeRecords = await prisma.swipe.findMany({
+        where: {
+          swiperId: DEMO_USER_ID,
+          targetId: "user-maya-24",
+        },
+      });
+      expect(swipeRecords.length).toBe(1);
+
+      // Verify only 1 match record exists in DB
+      const matchRecords = await prisma.match.findMany({
+        where: {
+          OR: [
+            { userAId: DEMO_USER_ID, userBId: "user-maya-24" },
+            { userAId: "user-maya-24", userBId: DEMO_USER_ID },
+          ],
+        },
+      });
+      expect(matchRecords.length).toBe(1);
+    });
+
+    it("handles repeated pass action idempotently", async () => {
+      // 1. Initial pass
+      const first = await recordSwipe({
+        targetUserId: "user-elena-25",
+        action: "pass",
+      });
+      expect(first.success).toBe(true);
+      expect(first.match).toBe(false);
+
+      // 2. Retry pass
+      const retry = await recordSwipe({
+        targetUserId: "user-elena-25",
+        action: "pass",
+      });
+      expect(retry.success).toBe(true);
+      expect(retry.match).toBe(false);
+
+      const swipeRecords = await prisma.swipe.findMany({
+        where: {
+          swiperId: DEMO_USER_ID,
+          targetId: "user-elena-25",
+        },
+      });
+      expect(swipeRecords.length).toBe(1);
+    });
+
+    it("rejects conflicting swipe action on already swiped profile", async () => {
+      // 1. Like Maya first
+      await recordSwipe({
+        targetUserId: "user-maya-24",
+        action: "like",
+      });
+
+      // 2. Attempt to pass on Maya should throw conflict error
+      await expect(
+        recordSwipe({
+          targetUserId: "user-maya-24",
+          action: "pass",
+        })
+      ).rejects.toThrow(/Conflict: Profile has already been swiped on with a different decision/);
+
+      // Verify action in DB remains 'like'
+      const swipe = await prisma.swipe.findUnique({
+        where: {
+          swiperId_targetId: {
+            swiperId: DEMO_USER_ID,
+            targetId: "user-maya-24",
+          },
+        },
+      });
+      expect(swipe?.action).toBe("like");
+    });
+  });
 });
